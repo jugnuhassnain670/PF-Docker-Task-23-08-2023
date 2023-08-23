@@ -1,0 +1,45 @@
+server {
+    listen 80;
+    server_name your-domain.com;
+    root /app/vue-project/project-name/dist;  # Adjust this to the appropriate path of your Laravel public directory
+
+    index index.php index.html index.htm;
+
+    location /php {
+        alias /app/Laravel/public;
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;  # Adjust the PHP-FPM socket path if needed
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME /app/Laravel/public/index.php;
+    }
+
+    location /node {
+        proxy_pass http://localhost:8081/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    location /python {
+        proxy_pass http://localhost:5000/;
+        proxy_set_header Host $host;
+    }
+
+    location /vue {
+        proxy_pass http://localhost:8080/; # Assuming the Vue.js app runs on port 8080
+        proxy_set_header Host $host;
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+
